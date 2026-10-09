@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopEase - Online Shopping</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#f7f7fb;color:#222}
+header{background:white;padding:18px 6%;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 2px 10px #0001;position:sticky;top:0;z-index:5}
+.logo{color:#6c4cff;font-size:27px;font-weight:bold}
+.search{display:flex;flex:1;max-width:420px}.search input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px 0 0 8px;outline:none}.search button,.cart-button,.shop-now,.add-btn{background:#6c4cff;color:white;border:0;cursor:pointer}
+.search button{padding:12px 16px;border-radius:0 8px 8px 0}.cart-button{padding:12px 18px;border-radius:8px}
+.hero{margin:30px auto;width:90%;padding:50px 7%;border-radius:18px;background:linear-gradient(120deg,#e9e3ff,#fce7f3);display:flex;align-items:center;justify-content:space-between;gap:25px;flex-wrap:wrap}
+.hero h1{font-size:clamp(30px,5vw,46px);margin-bottom:15px;color:#292044}.hero p{color:#555;margin-bottom:22px;line-height:1.6}.shop-now{display:inline-block;text-decoration:none;padding:13px 23px;border-radius:8px}.hero-icon{font-size:100px}
+.section{width:90%;margin:35px auto}.section h2{margin-bottom:22px;font-size:27px}
+.categories{display:flex;gap:12px;flex-wrap:wrap}.category-btn{background:white;border:1px solid #ddd;padding:11px 20px;border-radius:25px;cursor:pointer}.category-btn:hover,.category-btn.active{background:#6c4cff;color:white;border-color:#6c4cff}
+.products{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}.product-card{background:white;border-radius:14px;overflow:hidden;box-shadow:0 3px 12px #0001;transition:transform .2s}.product-card:hover{transform:translateY(-5px)}
+.product-card img{width:100%;height:210px;object-fit:cover;background:#eee}.product-info{padding:16px}.product-category{color:#777;font-size:12px;text-transform:uppercase}.product-info h3{font-size:17px;margin:9px 0}.price{font-size:20px;font-weight:bold;color:#6c4cff;margin-bottom:13px}.add-btn{width:100%;padding:12px;border-radius:7px}.add-btn:hover,.shop-now:hover,.cart-button:hover,.search button:hover{background:#5033d8}
+.empty-message{grid-column:1/-1;text-align:center;padding:30px;color:#777}
+.cart-panel{position:fixed;top:0;right:-450px;width:min(420px,100%);height:100%;background:white;z-index:20;padding:25px;box-shadow:-5px 0 20px #0002;transition:right .3s;overflow-y:auto}.cart-panel.open{right:0}
+.cart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}.close-btn{border:0;background:none;font-size:27px;cursor:pointer}.cart-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid #eee}.cart-item h4{margin-bottom:7px}.quantity{display:flex;align-items:center;gap:10px;margin-top:8px}.quantity button{width:27px;height:27px;cursor:pointer;border:1px solid #ddd;background:#f5f3ff;border-radius:5px}.remove-btn{color:#e04444;border:0;background:none;cursor:pointer;margin-top:7px}.cart-total{margin:25px 0;font-size:22px;font-weight:bold;display:flex;justify-content:space-between}.checkout-btn{width:100%;background:#16a36a;color:white;border:0;padding:14px;border-radius:8px;cursor:pointer;font-size:16px}.checkout-btn:disabled{background:#aaa;cursor:not-allowed}
+.overlay{display:none;position:fixed;inset:0;background:#0006;z-index:15}.overlay.show{display:block}
+footer{background:#211b36;color:white;padding:30px 15px;text-align:center;margin-top:50px;line-height:1.8}
+@media(max-width:900px){.products{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-icon{font-size:65px}}
+@media(max-width:500px){header{padding:15px 5%}.logo{font-size:23px}.search{order:3;max-width:none;flex-basis:100%}.hero{padding:35px 7%}.hero-icon{display:none}.section{width:92%}.products{gap:12px}.product-card img{height:145px}.product-info{padding:11px}.product-info h3{font-size:15px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">ShopEase 🛍️</div>
+  <div class="search"><input id="searchInput" type="text" placeholder="Search products..."><button onclick="searchProducts()">Search</button></div>
+  <button class="cart-button" onclick="toggleCart(true)">🛒 Cart (<span id="cartCount">0</span>)</button>
+</header>
+<section class="hero"><div><h1>Discover Your<br>Perfect Style!</h1><p>Shop your favourite products at amazing prices.<br>Fashion, electronics and more, all in one place.</p><a href="#products" class="shop-now">Shop Now →</a></div><div class="hero-icon">🛍️</div></section>
+<section class="section"><h2>Shop by Category</h2><div class="categories">
+<button class="category-btn active" onclick="filterCategory('All',this)">All</button>
+<button class="category-btn" onclick="filterCategory('Fashion',this)">Fashion</button>
+<button class="category-btn" onclick="filterCategory('Electronics',this)">Electronics</button>
+<button class="category-btn" onclick="filterCategory('Accessories',this)">Accessories</button>
+<button class="category-btn" onclick="filterCategory('Home',this)">Home</button>
+</div></section>
+<section class="section" id="products"><h2>Our Products</h2><div class="products" id="productList"></div></section>
+<div class="overlay" id="overlay" onclick="toggleCart(false)"></div>
+<aside class="cart-panel" id="cartPanel"><div class="cart-header"><h2>Your Shopping Cart</h2><button class="close-btn" onclick="toggleCart(false)" aria-label="Close cart">&times;</button></div><div id="cartItems"></div><div class="cart-total"><span>Total:</span><span id="cartTotal">₹0</span></div><button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>Proceed to Checkout</button></aside>
+<footer><h2>ShopEase 🛍️</h2><p>Your favourite products, just a click away.</p><p>© 2026 ShopEase. All rights reserved.</p></footer>
+<script>
+const products=[
+{id:1,name:"Casual T-Shirt",category:"Fashion",price:499,image:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500"},
+{id:2,name:"Stylish Sneakers",category:"Fashion",price:1499,image:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500"},
+{id:3,name:"Wireless Headphones",category:"Electronics",price:1999,image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500"},
+{id:4,name:"Smart Watch",category:"Electronics",price:2499,image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"},
+{id:5,name:"Classic Handbag",category:"Accessories",price:999,image:"https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500"},
+{id:6,name:"Sunglasses",category:"Accessories",price:599,image:"https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500"},
+{id:7,name:"Table Lamp",category:"Home",price:799,image:"https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500"},
+{id:8,name:"Coffee Mug",category:"Home",price:299,image:"https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500"}];
+let cart=[],selectedCategory="All";
+function displayProducts(list){const el=document.getElementById("productList");if(!list.length){el.innerHTML='<p class="empty-message">No products found. Try another search!</p>';return;}el.innerHTML=list.map(p=>`<article class="product-card"><img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/500x350?text=Product'"><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><p class="price">₹${p.price.toLocaleString("en-IN")}</p><button class="add-btn" onclick="addToCart(${p.id})">Add to Cart +</button></div></article>`).join("");}
+function searchProducts(){const q=document.getElementById("searchInput").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)&&(selectedCategory==="All"||p.category===selectedCategory)));}
+function filterCategory(category,button){selectedCategory=category;document.querySelectorAll(".category-btn").forEach(b=>b.classList.remove("active"));button.classList.add("active");searchProducts();}
+document.getElementById("searchInput").addEventListener("input",searchProducts);
+function addToCart(id){const item=cart.find(i=>i.id===id);if(item)item.quantity++;else cart.push({id,quantity:1});updateCart();}
+function changeQuantity(id,change){const item=cart.find(i=>i.id===id);if(!item)return;item.quantity+=change;if(item.quantity<=0)cart=cart.filter(i=>i.id!==id);updateCart();}
+function removeFromCart(id){cart=cart.filter(i=>i.id!==id);updateCart();}
+function getCartTotal(){return cart.reduce((sum,i)=>sum+products.find(p=>p.id===i.id).price*i.quantity,0);}
+function updateCart(){document.getElementById("cartCount").textContent=cart.reduce((sum,i)=>sum+i.quantity,0);const el=document.getElementById("cartItems");if(!cart.length)el.innerHTML="<p>Your cart is empty. Start shopping! 🛍️</p>";else el.innerHTML=cart.map(i=>{const p=products.find(p=>p.id===i.id);return `<div class="cart-item"><div><h4>${p.name}</h4><p>₹${p.price.toLocaleString("en-IN")}</p><div class="quantity"><button onclick="changeQuantity(${i.id},-1)" aria-label="Decrease quantity">−</button><span>${i.quantity}</span><button onclick="changeQuantity(${i.id},1)" aria-label="Increase quantity">+</button></div><button class="remove-btn" onclick="removeFromCart(${i.id})">Remove</button></div><strong>₹${(p.price*i.quantity).toLocaleString("en-IN")}</strong></div>`;}).join("");document.getElementById("cartTotal").textContent="₹"+getCartTotal().toLocaleString("en-IN");document.getElementById("checkoutBtn").disabled=cart.length===0;}
+function toggleCart(open){document.getElementById("cartPanel").classList.toggle("open",open);document.getElementById("overlay").classList.toggle("show",open);}
+function checkout(){if(!cart.length)return;alert("Thank you for shopping with ShopEase! 🛍️\n\nYour order total is ₹"+getCartTotal().toLocaleString("en-IN")+".\n\nThis is a demo checkout. No payment was made.");}
+displayProducts(products);updateCart();
+</script>
+</body>
+</html>
